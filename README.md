@@ -1,17 +1,18 @@
 # Payroll Management System
 
-![Java](https://img.shields.io/badge/Java-8+-orange?logo=java)
+![Java](https://img.shields.io/badge/Java-21-orange?logo=java)
+![Maven](https://img.shields.io/badge/Build-Maven-blue?logo=apachemaven)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-blue?logo=mysql)
-![JDBC](https://img.shields.io/badge/JDBC-Driver-green)
+![JDBC](https://img.shields.io/badge/JDBC-Connector%2FJ-green)
 ![Swing](https://img.shields.io/badge/Java-Swing%20%2F%20AWT-red)
+![JUnit5](https://img.shields.io/badge/Tests-JUnit5%20%2B%20Cucumber-25A162?logo=cucumber)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
-**Author:** Rezaul Karim & Ranajit B. Chowdhury
-SoftWare Programmer & QA Automation Engineer
+**Author:** RezaulmKarim & Ranajit Baran Chowdhury — Software Programmer & QA Automation Engineer
 **Email:** rknyc2021@gmail.com
 **GitHub:** [@rezaulkarim](https://github.com/REZAULKARIM2024)
 
-A comprehensive desktop-based payroll automation solution built with **Java Swing/AWT** and **MySQL**. This application delivers end-to-end payroll management for small to medium-sized organizations — covering secure authentication, employee management, attendance tracking, and automated salary calculations.
+A desktop payroll management application built with **Java Swing** and **MySQL**, packaged and tested with **Maven**. It covers employee record management, payroll/salary calculation, payslip generation (with amount-in-words cheque text), and login authentication — backed by a JUnit5 + Cucumber automated test suite (unit, BDD, and Swing UI tests).
 
 ---
 
@@ -19,85 +20,44 @@ A comprehensive desktop-based payroll automation solution built with **Java Swin
 
 | Component | Technology |
 |-----------|-----------|
-| **Frontend** | Java Swing / AWT GUI |
-| **Backend Logic** | Core Java (OOP) |
+| **Frontend** | Java Swing / AWT (tabbed GUI) |
+| **Backend Logic** | Core Java (OOP), pure helper/validator classes |
 | **Database** | MySQL 8.0 |
-| **Connectivity** | JDBC (Java Database Connectivity) |
-| **IDEs Supported** | IntelliJ IDEA / Eclipse / NetBeans |
-| **Tools** | MySQL Workbench, MySQL Connector/J |
+| **Connectivity** | JDBC via `mysql-connector-j` |
+| **Build** | Maven (`pom.xml`, Java 21) |
+| **Testing** | JUnit 5, Cucumber (`cucumber-java`, `junit-platform-suite`), AssertJ-Swing for UI tests |
+| **Reporting** | `maven-cucumber-reporting` (HTML test reports) |
+| **Document Output** | iText7 (PDF), Apache POI (Excel/Office) |
 
 ---
 
 ## ✨ Key Features
 
-### 🔐 Secure Authentication
-- User login and signup with credential validation
-- Role-based session management
-- Secure access control for sensitive payroll data
+### 🔐 Login / Authentication
+- Username/password login screen (`LoginTab`)
+- Authentication logic extracted into `AuthService` for unit testing
+- On success, navigates into the main tabbed dashboard (`PayrollTabbedGUI`)
 
 ### 👨‍💼 Employee Management
-- Full CRUD — Add, Update, Search, and Delete employee records
-- Structured employee database with complete profile storage
-- Quick employee lookup and profile management
+- **Add Employee** (`AddEmployeeTab`) — form validated via `EmployeeFormValidator`
+- **View Employees** (`ViewEmployeeTab`) — live table of all employees, refreshed from the database
+- **Update Employee** (`UpdateEmployeeTab`) — edit existing employee records
+- **Delete Employee** (`DeleteEmployeeTab`) — delete by Employee ID, with validation via `DeleteEmployeeHelper`
+- **Search Employee** (`SearchEmployeeTab`) — search by Employee ID or name (`SearchQueryHelper`); live table search box is protected from invalid-regex input by `SearchFilterHelper`
+- **Refresh** (`RefreshTab`) — reloads the employee table and clears the update form
 
-### 💰 Automated Salary Calculation
-Intelligent payroll engine calculating:
-- **HRA** — House Rent Allowance
-- **DA** — Dearness Allowance
-- **PF** — Provident Fund deduction
-- **Gross Salary** and **Net Salary** generation
+### 💰 Payroll & Salary Calculation
+- `PayrollCalculator` computes gross/net salary, overtime, double-time, holiday pay, special-work pay, bonus, tax, and medical insurance deductions
+- `Employees` model class represents an employee record across the app
 
-### 📅 Attendance Tracking
-- Daily attendance marking (Present / Absent / Leave)
-- Leave management and tracking
-- Monthly attendance reports and history
+### 🧾 Payslip Generation
+- **Payslip** tab (`PayslipTab`) generates a payslip and cheque for a given Employee ID + pay date
+- `PayslipFormatter` validates/parses the pay date and formats it for SQL/display
+- `AmountToWordsConverter` converts the net salary amount into cheque-style words (e.g. "One Thousand Dollars and 00/100")
 
 ### 🗄️ Database Integration
-- MySQL-based persistent storage
-- Efficient data retrieval using JDBC
-- Reliable transaction management
-
-### 🧾 Pay Slip Generation
-- Professional salary slip generation per employee
-- Printable payroll reports
-- Detailed payment and deduction breakdowns
-
----
-
-## 🏗️ System Architecture
-
-```
-┌──────────────────────────────────────┐
-│         Login / Signup Module        │
-└──────────────────┬───────────────────┘
-                   │
-                   ▼
-┌──────────────────────────────────────┐
-│            Main Dashboard            │
-└──────────────────┬───────────────────┘
-                   │
-       ┌───────────┼───────────┐
-       │           │           │
-       ▼           ▼           ▼
-┌──────────┐ ┌──────────┐ ┌──────────────┐
-│ Employee │ │Attendance│ │    Salary    │
-│Management│ │Management│ │ Calculation  │
-└────┬─────┘ └────┬─────┘ └──────┬───────┘
-     │            │              │
-     ▼            ▼              ▼
-┌──────────┐ ┌──────────┐ ┌──────────────┐
-│ Employee │ │Attendance│ │   Payroll    │
-│  Table   │ │  Table   │ │   Records    │
-└────┬─────┘ └────┬─────┘ └──────┬───────┘
-     │            │              │
-     └────────────┴──────────────┘
-                  │
-                  ▼
-          ┌──────────────┐
-          │   Pay Slip   │
-          │    Output    │
-          └──────────────┘
-```
+- `DBConnection` provides the JDBC connection to MySQL (`payroll_db`)
+- Setup script: [`db/setup_payroll_db.sql`](db/setup_payroll_db.sql) — creates the database, app user, `employees` table, and sample rows
 
 ---
 
@@ -105,151 +65,105 @@ Intelligent payroll engine calculating:
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| UI | Java Swing / AWT | Desktop GUI components |
-| Logic | Core Java (OOP) | Business rules, calculations |
-| Data Access | JDBC | Database communication |
-| Database | MySQL 8.0 | Persistent data storage |
-| Driver | MySQL Connector/J | JDBC–MySQL bridge |
+| UI | Java Swing / AWT | Tabbed desktop GUI (`PayrollTabbedGUI`) |
+| Logic | Core Java (OOP) | Validators, helpers, calculators (no Swing/JDBC dependency — independently unit-tested) |
+| Data Access | JDBC (`mysql-connector-j`) | Communication with MySQL |
+| Database | MySQL 8.0 | Persistent storage (`employees` table) |
+| Documents | iText7, Apache POI | PDF / Office document generation |
+| Testing | JUnit 5, Cucumber, AssertJ-Swing | Unit, BDD/feature, and UI automation tests |
+| Reporting | maven-cucumber-reporting | HTML Cucumber test reports |
 
 ---
 
 ## ✅ Prerequisites
 
-Before setting up the project, ensure you have installed:
-
-- **JDK 8 or higher** — configured in PATH
-- **MySQL Server** — installed and running
-- **MySQL Workbench** — for database management
-- **MySQL Connector/J** — JDBC driver `.jar` file
+- **JDK 21** (configured in `PATH`/`JAVA_HOME`)
+- **Maven 3.8+**
+- **MySQL Server 8.0** — installed and running
 - **Git** — for version control
 
 ---
 
 ## 🚀 Installation & Setup
 
-### Step 1 — Create Database
-
-Open MySQL Workbench and execute:
-
-```sql
-CREATE DATABASE payroll_db;
-USE payroll_db;
-```
-
-### Step 2 — Create Tables
-
-```sql
--- Employee Table
-CREATE TABLE Employee (
-    emp_id       INT PRIMARY KEY AUTO_INCREMENT,
-    emp_name     VARCHAR(100),
-    designation  VARCHAR(50),
-    department   VARCHAR(50),
-    salary       DECIMAL(10,2),
-    email        VARCHAR(100)
-);
-
--- Login Table
-CREATE TABLE Login (
-    user_id   INT PRIMARY KEY AUTO_INCREMENT,
-    username  VARCHAR(50) UNIQUE,
-    password  VARCHAR(100),
-    emp_id    INT,
-    FOREIGN KEY (emp_id) REFERENCES Employee(emp_id)
-);
-
--- Attendance Table
-CREATE TABLE Attendance (
-    attendance_id   INT PRIMARY KEY AUTO_INCREMENT,
-    emp_id          INT,
-    attendance_date DATE,
-    status          VARCHAR(20),
-    FOREIGN KEY (emp_id) REFERENCES Employee(emp_id)
-);
-
--- Salary Table
-CREATE TABLE Salary (
-    salary_id    INT PRIMARY KEY AUTO_INCREMENT,
-    emp_id       INT,
-    basic        DECIMAL(10,2),
-    hra          DECIMAL(10,2),
-    da           DECIMAL(10,2),
-    pf           DECIMAL(10,2),
-    gross_salary DECIMAL(10,2),
-    net_salary   DECIMAL(10,2),
-    month_year   VARCHAR(10),
-    FOREIGN KEY (emp_id) REFERENCES Employee(emp_id)
-);
-```
-
-### Step 3 — Clone the Repository
+### Step 1 — Clone the repository
 
 ```bash
 git clone https://github.com/ranajitchowdhury/PayrollManagementSystem.git
 cd PayrollManagementSystem
 ```
 
-### Step 4 — Add JDBC Driver
+### Step 2 — Set up the MySQL database
 
-1. Download **MySQL Connector/J** from [mysql.com/downloads/connector/j](https://dev.mysql.com/downloads/connector/j/)
-2. Extract the `.jar` file
-3. Add to your project's Build Path:
+Run the included setup script against your MySQL server:
 
-| IDE | Steps |
-|-----|-------|
-| **IntelliJ IDEA** | File → Project Structure → Libraries → + → Add JAR |
-| **Eclipse** | Right-click Project → Build Path → Add External Archives |
-| **NetBeans** | Right-click Project → Properties → Libraries → Add JAR |
-
-### Step 5 — Configure Database Connection
-
-Update `Conn.java` with your MySQL credentials:
-
-```java
-package com.payroll.database;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-
-public class Conn {
-
-    public static Connection getConnection() {
-        Connection connection = null;
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            connection = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/payroll_db",
-                "root",
-                "YOUR_PASSWORD"   // ← Replace with your MySQL password
-            );
-            System.out.println("✅ Database connection established.");
-        } catch (ClassNotFoundException e) {
-            System.err.println("❌ MySQL JDBC Driver not found!");
-            e.printStackTrace();
-        } catch (SQLException e) {
-            System.err.println("❌ Connection failed!");
-            e.printStackTrace();
-        }
-        return connection;
-    }
-}
+```bash
+mysql -u root -p < db/setup_payroll_db.sql
 ```
+
+This creates:
+- the `payroll_db` database
+- an application user `admin` / `admin123` (used by `DBConnection.java`)
+- the `employees` table with the full schema used by the app
+- two sample employee rows (John Doe, Jane Smith)
+
+> If you use different credentials, update `URL`, `USER`, and `PASSWORD` in
+> `src/main/java/com/payroll/DBConnection.java` to match.
+
+### Step 3 — Build the project
+
+```bash
+mvn clean install
+```
+
+Maven will download `mysql-connector-j`, JUnit 5, Cucumber, AssertJ-Swing,
+iText7, and Apache POI automatically (see `pom.xml`).
 
 ---
 
 ## ▶️ How to Run
 
-1. Open the project in your IDE
-2. Run the main entry point:
-   - `Splash.java` → shows splash screen on startup
-   - `Login.java` → opens the login interface directly
-3. **Sign Up** to create a new account, or **Login** with existing credentials
-4. From the **Dashboard**, you can:
-   - Manage employee records
-   - Track daily attendance
-   - Calculate and process payroll
-   - Generate and view pay slips
+Run the application's main class, `com.payroll.PayrollTabbedGUI`:
+
+```bash
+mvn exec:java -Dexec.mainClass="com.payroll.PayrollTabbedGUI"
+```
+
+or run the packaged jar after `mvn clean package`:
+
+```bash
+java -jar target/payroll-system-1.0.0.jar
+```
+
+1. The **Login** screen appears — log in to access the dashboard.
+2. From the tabbed dashboard you can:
+   - Add, view, update, search, and delete employee records
+   - Refresh the employee table
+   - Generate payslips and cheques for a given Employee ID and pay date
+
+---
+
+## 🧪 Testing
+
+This project has an automated test suite covering unit, BDD/Cucumber, and Swing UI layers.
+
+```bash
+mvn clean test      # run all unit + Cucumber tests
+mvn clean verify     # run tests and generate the Cucumber HTML report
+```
+
+| Test type | Examples |
+|-----------|----------|
+| **Unit (JUnit 5)** | `EmployeeFormValidatorTest`, `PayslipFormatterTest`, `PayrollCalculatorTest`, `AmountToWordsConverterTest`, `AuthServiceTest`, `SearchQueryHelperTest`, `DeleteEmployeeHelperTest`, `SearchFilterHelperTest`, `SecurityTest`, `UIHelperTest` |
+| **Cucumber (BDD)** | `login_auth.feature`, `search_employee.feature`, `payslip_formatting.feature`, `employee_form_validation.feature`, `payroll_calculator.feature`, `amount_to_words.feature`, `employees_model.feature`, `db_connection.feature` |
+| **Swing UI (AssertJ-Swing, `@Tag("ui")`)** | `WelcomeTabTest`, `RefreshTabTest` — drive real `java.awt.Robot` clicks, require an on-screen display |
+
+Test highlights:
+- **Smoke** — main tabs/labels/buttons render correctly on startup
+- **Sanity/Regression** — positive and negative cases for date parsing, login credentials, search, and employee deletion
+- **Security** — SQL-injection-style inputs are rejected/parameterized (`SecurityTest`), and the live search box no longer throws `PatternSyntaxException` on malformed regex (`SearchFilterHelper`)
+
+Detailed manual + automated test plan for the Swing tabs: [`TEST_PLAN_GUI_TABS.md`](TEST_PLAN_GUI_TABS.md).
 
 ---
 
@@ -257,52 +171,64 @@ public class Conn {
 
 ```
 PayrollManagementSystem/
+├── pom.xml
+├── db/
+│   └── setup_payroll_db.sql              ← MySQL schema + sample data
 ├── src/
-│   └── com/payroll/
-│       ├── database/
-│       │   └── Conn.java               ← JDBC connection manager
-│       ├── models/
-│       │   ├── Employee.java
-│       │   ├── Salary.java
-│       │   └── Attendance.java
-│       ├── views/
-│       │   ├── Splash.java
-│       │   ├── Login.java
-│       │   ├── Dashboard.java
-│       │   └── EmployeePanel.java
-│       └── controllers/
-│           └── PayrollController.java
-├── lib/
-│   └── mysql-connector-java-x.x.x.jar
-├── README.md
-└── .gitignore
+│   ├── main/java/com/payroll/
+│   │   ├── PayrollTabbedGUI.java          ← main entry point / tabbed window
+│   │   ├── LoginTab.java                  ← login screen
+│   │   ├── AuthService.java               ← login credential check (extracted, tested)
+│   │   ├── AddEmployeeTab.java
+│   │   ├── ViewEmployeeTab.java
+│   │   ├── UpdateEmployeeTab.java
+│   │   ├── DeleteEmployeeTab.java
+│   │   ├── DeleteEmployeeHelper.java      ← delete validation (extracted, tested)
+│   │   ├── SearchEmployeeTab.java
+│   │   ├── SearchQueryHelper.java         ← search SQL/pattern logic (extracted, tested)
+│   │   ├── SearchFilterHelper.java        ← safe live-search regex filter (extracted, tested)
+│   │   ├── RefreshTab.java
+│   │   ├── WelcomeTab.java
+│   │   ├── PayslipTab.java
+│   │   ├── PayslipFormatter.java          ← payslip date/SQL formatting (extracted, tested)
+│   │   ├── AmountToWordsConverter.java    ← cheque amount-in-words (extracted, tested)
+│   │   ├── PayrollCalculator.java         ← salary/deductions calculation (extracted, tested)
+│   │   ├── EmployeeFormValidator.java     ← Add/Update form validation (extracted, tested)
+│   │   ├── Employees.java                 ← employee model
+│   │   ├── UIHelper.java                  ← UI font/look-and-feel helper
+│   │   └── DBConnection.java              ← JDBC connection (payroll_db)
+│   └── test/
+│       ├── java/com/payroll/              ← JUnit5 + AssertJ-Swing tests
+│       └── java/com/payroll/cucumber/     ← Cucumber step definitions + runner
+│       └── resources/features/            ← Gherkin .feature files
+├── TEST_PLAN_GUI_TABS.md
+└── README.md
 ```
 
 ---
 
-## 🌟 Why This Project Stands Out
+## 🌟 Highlights
 
 | Highlight | Detail |
 |-----------|--------|
-| ✅ Desktop GUI | Full-featured Swing/AWT interface |
-| ✅ Complete CRUD | Create, Read, Update, Delete with MySQL |
-| ✅ Secure Auth | Login with credential validation |
-| ✅ Business Logic | Accurate payroll with deductions and allowances |
-| ✅ JDBC Integration | Efficient DB connectivity and transactions |
-| ✅ Clean Architecture | Separate layers: UI, Logic, Database |
-| ✅ OOP Principles | Classes, inheritance, encapsulation applied |
+| ✅ Desktop GUI | Java Swing tabbed interface for all payroll operations |
+| ✅ Complete CRUD | Add, view, update, search, delete employees in MySQL |
+| ✅ Payroll Engine | Gross/net salary, overtime, holiday pay, bonus, deductions |
+| ✅ Payslip & Cheque | Auto-generated payslip with amount-in-words cheque text |
+| ✅ Clean Architecture | Business logic extracted from Swing tabs into standalone, testable classes |
+| ✅ Automated Testing | JUnit5 + Cucumber + AssertJ-Swing, with smoke/sanity/regression/security coverage |
+| ✅ JDBC Integration | MySQL persistence via `mysql-connector-j` |
 
 ---
 
 ## 🔮 Future Enhancements
 
-- 🔒 Role-based access control (Admin / HR / Employee)
-- 📄 Export pay slips as PDF
-- 📊 Advanced reporting dashboard with charts
+- 🔒 Move hardcoded DB/login credentials to environment variables or a config file
+- 📄 Export payslips directly as PDF (iText7 already a dependency)
+- 📊 Excel/Office payroll reports via Apache POI
 - 🌐 Web version using Spring Boot + React
-- 🔔 Email notifications for salary processing
-- 📱 Mobile companion application
 - 🔗 REST API for third-party integration
+- 🧪 Headless/Xvfb setup for running AssertJ-Swing tests in CI
 
 ---
 
@@ -342,4 +268,4 @@ This project is designed for educational and small-scale organizational use. For
 ---
 
 **Version:** 1.0.0
-**Last Updated:** May 2026
+**Last Updated:** June 2026
