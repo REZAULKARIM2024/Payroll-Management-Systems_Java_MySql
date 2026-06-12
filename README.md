@@ -6,10 +6,10 @@
 ![Swing](https://img.shields.io/badge/Java-Swing%20%2F%20AWT-red)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
-**Author:** Ranajit Baran Chowdhury 
+**Author:** Rezaul Karim & Ranajit B. Chowdhury
 SoftWare Programmer & QA Automation Engineer
-**Email:** chyranajit@gmail.com
-**GitHub:** [@ranajitchowdhury](https://github.com/ranajitchowdhury)
+**Email:** rknyc2021@gmail.com
+**GitHub:** [@rezaulkarim](https://github.com/REZAULKARIM2024)
 
 A comprehensive desktop-based payroll automation solution built with **Java Swing/AWT** and **MySQL**. This application delivers end-to-end payroll management for small to medium-sized organizations — covering secure authentication, employee management, attendance tracking, and automated salary calculations.
 
